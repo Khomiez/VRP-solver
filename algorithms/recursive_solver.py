@@ -6,6 +6,7 @@ from itertools import combinations
 from utils import log, timer
 from models.data import demands, vehicle_choices
 from models.solution import VRPSolution
+# Import routing functions with original names
 from algorithms.routing import find_best_route, is_valid_assignment
 
 def find_optimal_solution(nodes_to_assign, available_vehicles, used_vehicles=None, current_solution=None, best_solution=None, depth=0):

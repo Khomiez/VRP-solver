@@ -7,6 +7,7 @@ from itertools import combinations
 import sys
 from utils import log, timer
 from models.data import distance_matrix, demands, vehicle_choices
+# Import routing functions with original names
 from algorithms.routing import find_best_route, is_valid_assignment
 
 # Try to import OR-Tools, but make it optional
