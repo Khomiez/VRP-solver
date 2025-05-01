@@ -4,7 +4,7 @@ Recursive optimization algorithm for the VRP solver.
 
 from itertools import combinations
 from utils import log, timer
-from models.data import demands, vehicle_choices
+from models.data import demands, vehicle_choices, distance_matrix
 from models.solution import VRPSolution
 # Import routing functions with original names
 from algorithms.routing import find_best_route, is_valid_assignment
@@ -122,11 +122,27 @@ def find_optimal_solution(nodes_to_assign, available_vehicles, used_vehicles=Non
             log(f"{indent}⏱️ Pruning: Current cost + min additional cost significantly exceeds best solution", 1)
             return best_solution
 
-    # Sort vehicles by efficiency (highest capacity-to-cost ratio first)
-    # This helps explore more promising vehicle choices earlier
+    # Dynamically calculate average distance for weighting
+    # Count non-zero distances and calculate average
+    total_distance_sum = sum(sum(row) for row in distance_matrix)
+    # Subtract diagonal elements (distance to self = 0)
+    matrix_size = len(distance_matrix)
+    # Total number of valid distances (excluding self-to-self)
+    valid_distances_count = matrix_size * (matrix_size - 1)
+    
+    # Calculate average distance, with safeguard against division by zero
+    if valid_distances_count > 0:
+        avg_distance = total_distance_sum / valid_distances_count
+    else:
+        avg_distance = 10  # Default fallback if calculation fails
+    
+    log(f"{indent}Dynamic weight based on average distance: {avg_distance:.2f}", 1)
+
+    # Sort vehicles by efficiency using dynamic weight from average distance
+    # Instead of fixed value 10, use the calculated average distance
     sorted_vehicles = sorted(
         [v for v in available_vehicles if v[0] not in used_vehicles],
-        key=lambda v: (v[2] + v[3]) / (v[1] + 10 * v[4]),  # Less aggressive cost estimate
+        key=lambda v: (v[2] + v[3]) / (v[1] + avg_distance * v[4]),  # Dynamic cost estimate
         reverse=True
     )
     
