@@ -106,7 +106,10 @@ def find_best_route(nodes):
         dist = sum(distance_matrix[path[i]][path[i+1]] for i in range(len(path) - 1))
         return [hub], dist, path
 
-    # Rest of the function...
+    # Initialize variables for best route tracking
+    best_distance = float('inf')
+    best_path = None
+    best_final_path = None
     
     # For permutations, exclude required nodes initially if present
     permutation_nodes = [n for n in nodes if n not in [required_node1, required_node2]]
