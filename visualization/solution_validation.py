@@ -6,15 +6,6 @@ from models.data import demands, vehicle_choices
 from algorithms.routing import calculate_route_distance
 from models.data import REQUIRED_END_SEQUENCE
 
-# Get required nodes from the constant
-required_node1 = REQUIRED_END_SEQUENCE[0]
-required_node2 = REQUIRED_END_SEQUENCE[1]
-hub = REQUIRED_END_SEQUENCE[2]
-
-if path[0] != hub:
-    valid = False
-    validation_errors.append(f"Route for vehicle {name} doesn't start at Hub")
-
 def verify_solution(solution):
     """
     Verifies that a solution is valid and correct.
@@ -30,6 +21,11 @@ def verify_solution(solution):
     print("🔍 SOLUTION VALIDATION")
     print("=======================================")
     
+    # Get required nodes from the constant
+    required_node1 = REQUIRED_END_SEQUENCE[0]
+    required_node2 = REQUIRED_END_SEQUENCE[1]
+    hub = REQUIRED_END_SEQUENCE[2]
+    
     valid = True
     validation_errors = []
     
@@ -41,7 +37,7 @@ def verify_solution(solution):
     # 1. Check all nodes are visited
     required_nodes = set(demands.keys())
     missing_nodes = required_nodes - all_assigned_nodes
-    extra_nodes = all_assigned_nodes - required_nodes - {5, 6}  # Exclude G and H from extras
+    extra_nodes = all_assigned_nodes - required_nodes - {required_node1, required_node2}  # Exclude required nodes from extras
     
     if missing_nodes:
         valid = False
@@ -97,7 +93,7 @@ def verify_solution(solution):
     
     # 5. Check routes start at Hub and verify path calculation
     for name, fixed_cost, nodes_subset, path, distance, fuel_cost, final_path in solution["trips"]:
-        if path[0] != 0:
+        if path[0] != hub:
             valid = False
             validation_errors.append(f"Route for vehicle {name} doesn't start at Hub")
         
