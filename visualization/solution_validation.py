@@ -4,6 +4,16 @@ Functions for validating VRP solutions.
 
 from models.data import demands, vehicle_choices
 from algorithms.routing import calculate_route_distance
+from models.data import REQUIRED_END_SEQUENCE
+
+# Get required nodes from the constant
+required_node1 = REQUIRED_END_SEQUENCE[0]
+required_node2 = REQUIRED_END_SEQUENCE[1]
+hub = REQUIRED_END_SEQUENCE[2]
+
+if path[0] != hub:
+    valid = False
+    validation_errors.append(f"Route for vehicle {name} doesn't start at Hub")
 
 def verify_solution(solution):
     """

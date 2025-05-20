@@ -6,50 +6,48 @@ Designed for flexibility and scalability with additional nodes.
 
 # Full node mapping for clarity and future expansion
 NODE_MAPPING = {
-    0: 'Hub',
-    1: 'A',
-    2: 'B',
-    3: 'C',
-    4: 'D',
-    5: 'G',  # Notice we're preserving the original indices for G and H
-    6: 'H',
-    7: 'E',  # Adding E as node 7
-    8: 'F'   # Adding F as node 8
+    0: 'Hub_DMK',
+    1: 'A_central rama 9',
+    2: 'B_the nine',
+    3: 'C_seacon',
+    4: 'D_mega bangna',
+    5: 'G',  # Required node G
+    6: 'H',  # Required node H
+    7: 'E_BKK',  # Adding E as node 7
 }
 
 # Inverse mapping for name lookups
 NAME_TO_NODE = {v: k for k, v in NODE_MAPPING.items()}
 
-# Distance matrix - Complete 9x9 matrix for 9 nodes
-# Index 0 = Hub, 1-4 = A-D, 5 = G, 6 = H, 7 = E, 8 = F
+# Required end sequence - all routes must end with G -> H -> Hub
+REQUIRED_END_SEQUENCE = [5, 6, 0]  # G (5) -> H (6) -> Hub (0)
+
+# Distance matrix - Complete 8x8 matrix for 8 nodes
+# Index 0 = Hub, 1-4 = A-D, 5 = G, 6 = H, 7 = E
 distance_matrix = [
-    [0, 80, 10, 15, 10, 35, 30, 10, 55],  # Hub to all
-    [80, 0, 70, 60, 50, 40, 35, 70, 50],  # A to all
-    [10, 70, 0, 20, 10, 40, 40, 40, 50],  # B to all
-    [15, 60, 20, 0, 20, 30, 20, 5, 60],   # C to all
-    [10, 50, 10, 20, 0, 20, 5, 20, 50],   # D to all
-    [35, 40, 40, 30, 20, 0, 10, 10, 70],  # G to all
-    [30, 35, 40, 20, 5, 10, 0, 25, 60],   # H to all
-    [10, 70, 40, 5, 20, 10, 25, 0, 65],   # E to all
-    [55, 50, 50, 60, 50, 70, 60, 65, 0]   # F to all
+    [0, 19.5, 26.3, 33.2, 40.3, 35.0, 38.0, 41.2],  # DMK to all
+    [19.5, 0, 7.1, 14.3, 22.9, 20.0, 21.5, 23.9],   # central rama 9 to all
+    [26.3, 7.1, 0, 7.8, 16.4, 15.0, 16.0, 17.1],    # the nine to all
+    [33.2, 14.3, 7.8, 0, 8.6, 10.0, 15.0, 20.9],    # seacon to all
+    [40.3, 22.9, 16.4, 8.6, 0, 12.0, 14.0, 18.2],   # mega bangna to all
+    [35.0, 20.0, 15.0, 10.0, 12.0, 0, 5.0, 15.0],   # G to all
+    [38.0, 21.5, 16.0, 15.0, 14.0, 5.0, 0, 16.0],   # H to all
+    [41.2, 23.9, 17.1, 20.9, 18.2, 15.0, 16.0, 0]   # BKK to all
 ]
 
 # Delivery demands: index = node, value = (H, K)
-# Current demands just for nodes A-D, G-H (indices 1-4, 5-6)
 demands = {
     1: (1, 0),  # A demands
-    2: (0, 2),  # B demands
-    3: (1, 2),  # C demands
-    4: (1, 0),  # D demands
-    5: (0, 2),  # G demands
-    6: (0, 2),  # H demands
-    # E and F currently have no demands, but could be added later
-    # 7: (0, 0),  # E demands (placeholder)
-    # 8: (0, 0)   # F demands (placeholder)
+    2: (1, 2),  # B demands
+    3: (0, 2),  # C demands
+    4: (0, 0),  # D demands - note: zero demand won't need delivery
+    # 5: (0, 0),  # G demands - commented out as G is a required node, not a delivery node
+    # 6: (0, 0),  # H demands - commented out as H is a required node, not a delivery node
+    7: (0, 0),  # E demands (zero demand)
 }
 
 # Get active delivery nodes (those with demands)
-active_delivery_nodes = list(demands.keys())
+active_delivery_nodes = [node for node, demand in demands.items() if demand[0] > 0 or demand[1] > 0]
 
 # Vehicle options - each can be used only once ("Name", fixed_cost, h_cap, k_cap, fuel_cost)
 vehicle_choices = [
@@ -60,8 +58,6 @@ vehicle_choices = [
     ("Z", 600, 6, 6, 1)
 ]
 
-# Required end sequence - all routes must end with G -> H -> Hub
-REQUIRED_END_SEQUENCE = [5, 6, 0]  # G (5) -> H (6) -> Hub (0)
 
 def node_to_name(node):
     """
@@ -108,7 +104,7 @@ def add_node_demand(node, h_demand, k_demand):
         k_demand (int): Demand for K
     """
     demands[node] = (h_demand, k_demand)
-    if node not in active_delivery_nodes:
+    if node not in active_delivery_nodes and (h_demand > 0 or k_demand > 0):
         active_delivery_nodes.append(node)
 
 def remove_node_demand(node):

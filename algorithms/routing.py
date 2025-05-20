@@ -10,76 +10,74 @@ from models.data import distance_matrix, demands
 def calculate_route_distance(path):
     """
     Calculate the total distance of a route visiting all nodes in the path,
-    then visiting the closest of G or H from the last node, then the other one,
+    then visiting the closest of nodes 7 or 8 from the last node, then the other one,
     then returning to Hub.
-    
-    Implements the rule: "Every path should end with node G or H by choosing 
-    the closest one from the last visited node first, then go back to Hub."
-    
-    Args:
-        path: List of nodes to visit, starting with Hub (0)
-        
-    Returns:
-        tuple: (total_distance, full_path) - The total distance and complete path
     """
+    from models.data import REQUIRED_END_SEQUENCE
+    
+    # Get required nodes from the constant instead of hard-coding
+    required_node1 = REQUIRED_END_SEQUENCE[0]  # 7 (E_BKK)
+    required_node2 = REQUIRED_END_SEQUENCE[1]  # 8 (F_New_Location)
+    hub = REQUIRED_END_SEQUENCE[2]             # 0 (Hub)
+    
     # Start with the given path
     original_path = list(path)
     
-    # Check if G and H are already in the path
-    g_in_path = 5 in original_path
-    h_in_path = 6 in original_path
+    # Check if required nodes are already in the path
+    node1_in_path = required_node1 in original_path
+    node2_in_path = required_node2 in original_path
     
-    # If both G and H are already in the path, make sure we end at Hub
-    if g_in_path and h_in_path:
+    # If both required nodes are already in the path, make sure we end at Hub
+    if node1_in_path and node2_in_path:
         # Need to ensure path ends with returning to Hub
         full_path = original_path.copy()
-        if full_path[-1] != 0:
-            full_path.append(0)
+        if full_path[-1] != hub:
+            full_path.append(hub)
         
         total_distance = sum(distance_matrix[full_path[i]][full_path[i+1]] 
                              for i in range(len(full_path) - 1))
         return total_distance, full_path
     
-    # If both G and H are missing, append them based on which is closer to the last node
-    if not g_in_path and not h_in_path:
+    # If both required nodes are missing, append them based on which is closer to the last node
+    if not node1_in_path and not node2_in_path:
         full_path = original_path.copy()
         last_node = full_path[-1]
         
-        # Determine if G or H is closer to the last node
-        dist_to_g = distance_matrix[last_node][5]
-        dist_to_h = distance_matrix[last_node][6]
+        # Determine which required node is closer to the last node
+        dist_to_node1 = distance_matrix[last_node][required_node1]
+        dist_to_node2 = distance_matrix[last_node][required_node2]
         
-        if dist_to_g <= dist_to_h:  # G is closer or equal
-            # Add G first, then H
-            full_path.append(5)  # G
-            full_path.append(6)  # H
-        else:  # H is closer
-            # Add H first, then G
-            full_path.append(6)  # H
-            full_path.append(5)  # G
+        if dist_to_node1 <= dist_to_node2:  # Node1 is closer or equal
+            # Add Node1 first, then Node2
+            full_path.append(required_node1)
+            full_path.append(required_node2)
+        else:  # Node2 is closer
+            # Add Node2 first, then Node1
+            full_path.append(required_node2)
+            full_path.append(required_node1)
             
         # Return to hub
-        full_path.append(0)
+        full_path.append(hub)
         
         total_distance = sum(distance_matrix[full_path[i]][full_path[i+1]] 
                             for i in range(len(full_path) - 1))
         return total_distance, full_path
     
-    # If only G is missing, add it after the end and return to Hub
-    elif not g_in_path:
+    # If only one required node is missing, add it after the end and return to Hub
+    elif not node1_in_path:
         full_path = original_path.copy()
-        full_path.append(5)  # Add G
-        full_path.append(0)  # Return to Hub
+        full_path.append(required_node1)
+        full_path.append(hub)
         
         total_distance = sum(distance_matrix[full_path[i]][full_path[i+1]] 
                             for i in range(len(full_path) - 1))
         return total_distance, full_path
     
-    # If only H is missing, add it after the end and return to Hub
-    elif not h_in_path:
+    # If only the other required node is missing, add it after the end and return to Hub
+    elif not node2_in_path:
         full_path = original_path.copy()
-        full_path.append(6)  # Add H
-        full_path.append(0)  # Return to Hub
+        full_path.append(required_node2)
+        full_path.append(hub)
         
         total_distance = sum(distance_matrix[full_path[i]][full_path[i+1]] 
                             for i in range(len(full_path) - 1))
@@ -88,46 +86,42 @@ def calculate_route_distance(path):
 def find_best_route(nodes):
     """
     Find the shortest route that visits all given nodes, starting at Hub,
-    and ending by visiting the closest of G or H from the last node, then
-    the other one, then returning to Hub.
-    
-    Args:
-        nodes: List of delivery nodes to visit (may include G=5 and H=6)
-    
-    Returns:
-        tuple: (best_path, best_distance, final_path) - The optimal path, its distance, 
-               and the complete path with G/H and return to Hub
+    and ending by visiting the closest required node, then the other one, 
+    then returning to Hub.
     """
+    from models.data import REQUIRED_END_SEQUENCE
+    
+    # Get required nodes from the constant
+    required_node1 = REQUIRED_END_SEQUENCE[0]
+    required_node2 = REQUIRED_END_SEQUENCE[1]
+    hub = REQUIRED_END_SEQUENCE[2]
+    
     if not nodes:
-        # If no nodes to visit, just see if G or H is closer to Hub
-        if distance_matrix[0][5] <= distance_matrix[0][6]:
-            path = [0, 5, 6, 0]  # Hub -> G -> H -> Hub
+        # If no nodes to visit, just see which required node is closer to Hub
+        if distance_matrix[hub][required_node1] <= distance_matrix[hub][required_node2]:
+            path = [hub, required_node1, required_node2, hub]
         else:
-            path = [0, 6, 5, 0]  # Hub -> H -> G -> Hub
+            path = [hub, required_node2, required_node1, hub]
         
         dist = sum(distance_matrix[path[i]][path[i+1]] for i in range(len(path) - 1))
-        return [0], dist, path
+        return [hub], dist, path
 
-    best_distance = float('inf')
-    best_path = None
-    best_final_path = None
-
-    log(f"Finding best route for nodes {nodes}", 2)
+    # Rest of the function...
     
-    # For permutations, exclude G and H initially if present
-    permutation_nodes = [n for n in nodes if n not in [5, 6]]
+    # For permutations, exclude required nodes initially if present
+    permutation_nodes = [n for n in nodes if n not in [required_node1, required_node2]]
     
     # Try all permutations of the delivery nodes
     for perm in permutations(permutation_nodes):
-        path = [0] + list(perm)  # Start from Hub (0)
+        path = [hub] + list(perm)  # Start from Hub
         
-        # Handle G and H if they're in the original nodes list
-        if 5 in nodes:
-            path.append(5)
-        if 6 in nodes:
-            path.append(6)
+        # Handle required nodes if they're in the original nodes list
+        if required_node1 in nodes:
+            path.append(required_node1)
+        if required_node2 in nodes:
+            path.append(required_node2)
         
-        # Calculate distance with new rule for G/H
+        # Calculate distance with new rule for required nodes
         distance, final_path = calculate_route_distance(path)
         
         log(f"  Route {path} with rule applied: {final_path}, distance = {distance}", 3)
