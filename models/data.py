@@ -11,28 +11,23 @@ NODE_MAPPING = {
     2: 'B_the nine',
     3: 'C_seacon',
     4: 'D_mega bangna',
-    5: 'G',  # Required node G
-    6: 'H',  # Required node H
-    7: 'E_BKK',  # Adding E as node 7
+    5: 'E_BKK',
 }
 
 # Inverse mapping for name lookups
 NAME_TO_NODE = {v: k for k, v in NODE_MAPPING.items()}
 
-# Required end sequence - all routes must end with G -> H -> Hub
-REQUIRED_END_SEQUENCE = [5, 6, 0]  # G (5) -> H (6) -> Hub (0)
+# Required end sequence - all routes must end with D -> E -> Hub or  E -> D -> Hub
+REQUIRED_END_SEQUENCE = [4, 5, 0] 
 
-# Distance matrix - Complete 8x8 matrix for 8 nodes
-# Index 0 = Hub, 1-4 = A-D, 5 = G, 6 = H, 7 = E
+# Distance matrix - Complete 6x6 matrix for 6 nodes
 distance_matrix = [
-    [0, 19.5, 26.3, 33.2, 40.3, 35.0, 38.0, 41.2],  # DMK to all
-    [19.5, 0, 7.1, 14.3, 22.9, 20.0, 21.5, 23.9],   # central rama 9 to all
-    [26.3, 7.1, 0, 7.8, 16.4, 15.0, 16.0, 17.1],    # the nine to all
-    [33.2, 14.3, 7.8, 0, 8.6, 10.0, 15.0, 20.9],    # seacon to all
-    [40.3, 22.9, 16.4, 8.6, 0, 12.0, 14.0, 18.2],   # mega bangna to all
-    [35.0, 20.0, 15.0, 10.0, 12.0, 0, 5.0, 15.0],   # G to all
-    [38.0, 21.5, 16.0, 15.0, 14.0, 5.0, 0, 16.0],   # H to all
-    [41.2, 23.9, 17.1, 20.9, 18.2, 15.0, 16.0, 0]   # BKK to all
+    [0, 19.5, 26.3, 33.2, 40.3, 41.2],
+    [19.5, 0, 7.1, 14.3, 22.9, 23.9],
+    [26.3, 7.1, 0, 7.8, 16.4, 17.1],
+    [33.2, 14.3, 7.8, 0, 8.6, 20.9],
+    [40.3, 22.9, 16.4, 8.6, 0, 18.2],
+    [41.2, 23.9, 17.1, 20.9, 18.2, 0]
 ]
 
 # Delivery demands: index = node, value = (H, K)
@@ -40,10 +35,6 @@ demands = {
     1: (1, 0),  # A demands
     2: (1, 2),  # B demands
     3: (0, 2),  # C demands
-    4: (0, 0),  # D demands - note: zero demand won't need delivery
-    # 5: (0, 0),  # G demands - commented out as G is a required node, not a delivery node
-    # 6: (0, 0),  # H demands - commented out as H is a required node, not a delivery node
-    7: (0, 0),  # E demands (zero demand)
 }
 
 # Get active delivery nodes (those with demands)
